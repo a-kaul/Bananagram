@@ -293,11 +293,11 @@ struct AIAnalysisView: View {
             TransformationSuggestion(
                 photoId: photo.id,
                 type: .creativeTransform,
-                title: "FLUX Pro Style Transfer",
-                description: "Advanced style transfer using cutting-edge AI for artistic transformation",
-                reasoning: "The composition and lighting would work beautifully with creative style transformation",
+                title: "Nano Banana Creative Edit",
+                description: "Creative style transformation and enhancement using nano-banana",
+                reasoning: "The composition would work well with artistic adjustments in color and tone",
                 confidence: 0.85,
-                falModelId: "fal-ai/flux-pro/kontext",
+                falModelId: "fal-ai/nano-banana/edit",
                 orderIndex: 1
             ),
             TransformationSuggestion(
