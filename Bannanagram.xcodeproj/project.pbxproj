@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		63E246492E6CB87C0070FA00 /* FalClient in Frameworks */ = {isa = PBXBuildFile; productRef = 63E246482E6CB87C0070FA00 /* FalClient */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		63E246152E6CB0740070FA00 /* Bannanagram.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bannanagram.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63E246492E6CB87C0070FA00 /* FalClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = Bannanagram;
 			packageProductDependencies = (
+				63E246482E6CB87C0070FA00 /* FalClient */,
 			);
 			productName = Bannanagram;
 			productReference = 63E246152E6CB0740070FA00 /* Bannanagram.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 63E2460C2E6CB0740070FA00;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				63E246472E6CB87C0070FA00 /* XCRemoteSwiftPackageReference "fal-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 63E246162E6CB0740070FA00 /* Products */;
 			projectDirPath = "";
@@ -332,6 +341,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		63E246472E6CB87C0070FA00 /* XCRemoteSwiftPackageReference "fal-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/fal-ai/fal-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		63E246482E6CB87C0070FA00 /* FalClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63E246472E6CB87C0070FA00 /* XCRemoteSwiftPackageReference "fal-swift" */;
+			productName = FalClient;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 63E2460D2E6CB0740070FA00 /* Project object */;
 }
