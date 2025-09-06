@@ -1,8 +1,8 @@
 import Foundation
 import UIKit
-import Combine
 
-class GeminiService: ObservableObject {
+@Observable
+class GeminiService {
     static let shared = GeminiService()
     
     private let baseURL = "https://generativelanguage.googleapis.com/v1beta"

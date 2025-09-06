@@ -212,7 +212,7 @@ struct ShareSheet: UIViewControllerRepresentable {
     )
     mockMedia.markCompleted(withData: Data())
     
-    ResultView(
+    return ResultView(
         originalPhoto: mockPhoto,
         processedMedia: mockMedia,
         suggestion: mockSuggestion

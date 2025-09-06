@@ -239,7 +239,7 @@ struct ConfidenceBadge: View {
         )
     ]
     
-    SuggestionSelectionView(photo: mockPhoto, suggestions: mockSuggestions) {
+    return SuggestionSelectionView(photo: mockPhoto, suggestions: mockSuggestions) {
         print("Selection complete")
     }
     .modelContainer(for: Photo.self, inMemory: true)

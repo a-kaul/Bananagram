@@ -278,56 +278,56 @@ struct AIAnalysisView: View {
     }
     
     private func generateMockSuggestions() {
-        // Generate mock suggestions for now
+        // Generate mock suggestions using real FAL model IDs
         let mockSuggestions = [
             TransformationSuggestion(
                 photoId: photo.id,
                 type: .utilityEdit,
-                title: "Enhance Lighting",
-                description: "Brighten shadows and balance exposure for a more professional look",
-                reasoning: "The image has some dark areas that could benefit from lighting enhancement",
+                title: "Nano Banana Edit",
+                description: "Google's state-of-the-art image editing model for enhanced lighting and quality",
+                reasoning: "The image would benefit from professional-grade enhancement and editing",
                 confidence: 0.9,
-                falModelId: "enhance-lighting-v1",
+                falModelId: "fal-ai/nano-banana/edit",
                 orderIndex: 0
             ),
             TransformationSuggestion(
                 photoId: photo.id,
                 type: .creativeTransform,
-                title: "Studio Ghibli Style",
-                description: "Transform into a dreamy anime art style reminiscent of Studio Ghibli films",
-                reasoning: "The composition and natural elements would work beautifully in anime style",
+                title: "FLUX Pro Style Transfer",
+                description: "Advanced style transfer using cutting-edge AI for artistic transformation",
+                reasoning: "The composition and lighting would work beautifully with creative style transformation",
                 confidence: 0.85,
-                falModelId: "anime-style-v2",
+                falModelId: "fal-ai/flux-pro/kontext",
                 orderIndex: 1
             ),
             TransformationSuggestion(
                 photoId: photo.id,
                 type: .videoAnimation,
-                title: "Cinemagraph Loop",
-                description: "Create a subtle animated loop with moving elements while keeping the main subject still",
-                reasoning: "There are elements in the scene that would create a beautiful cinemagraph effect",
+                title: "Decart Lucy Video",
+                description: "Create a 5-second video in under 5 seconds with smooth motion",
+                reasoning: "The scene has elements that would create beautiful motion and animation",
                 confidence: 0.8,
-                falModelId: "cinemagraph-v1",
+                falModelId: "fal-ai/decart/lucy-5b/image-to-video",
                 orderIndex: 2
             ),
             TransformationSuggestion(
                 photoId: photo.id,
-                type: .creativeTransform,
-                title: "Vintage Film Look",
-                description: "Apply classic 35mm film aesthetics with warm tones and subtle grain",
-                reasoning: "The lighting and composition would benefit from vintage film treatment",
+                type: .utilityEdit,
+                title: "Character Edit",
+                description: "Modify characters while preserving their core identity and essence",
+                reasoning: "Detected characters that could benefit from subtle enhancement",
                 confidence: 0.75,
-                falModelId: "vintage-film-v1",
+                falModelId: "fal-ai/ideogram/character/edit",
                 orderIndex: 3
             ),
             TransformationSuggestion(
                 photoId: photo.id,
-                type: .utilityEdit,
-                title: "Portrait Enhancement",
-                description: "Subtle skin smoothing and eye enhancement while maintaining natural appearance",
-                reasoning: "Detected facial features that could benefit from portrait optimization",
+                type: .videoAnimation,
+                title: "Kling Video Master",
+                description: "Top-tier image-to-video generation with exceptional motion fluidity",
+                reasoning: "The composition would benefit from cinematic motion and video transformation",
                 confidence: 0.88,
-                falModelId: "portrait-enhance-v1",
+                falModelId: "fal-ai/kling-video/v2.1/master/image-to-video",
                 orderIndex: 4
             )
         ]
@@ -355,7 +355,7 @@ struct AIAnalysisView: View {
 #Preview {
     let mockPhoto = Photo(imageData: Data(), originalFileName: "test.jpg")
     
-    AIAnalysisView(photo: mockPhoto) {
+    return AIAnalysisView(photo: mockPhoto) {
         print("Analysis complete")
     }
     .modelContainer(for: Photo.self, inMemory: true)

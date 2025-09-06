@@ -14,6 +14,9 @@ struct ProcessingView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     
+    // Observe the FAL service for real-time updates
+    private let falService = FALService.shared
+    
     enum ProcessingPhase: CaseIterable {
         case preparing
         case analyzing
@@ -86,7 +89,7 @@ struct ProcessingView: View {
                     
                     // Phase Information
                     VStack(spacing: 12) {
-                        Text(processingPhase.title)
+                        Text(falService.isProcessing && !falService.processingStatus.isEmpty ? falService.processingStatus : processingPhase.title)
                             .font(.title2)
                             .fontWeight(.semibold)
                         
@@ -99,19 +102,21 @@ struct ProcessingView: View {
                     // Progress Bar
                     if processingPhase != .completed && processingPhase != .error {
                         VStack(spacing: 8) {
-                            ProgressView(value: progress)
+                            ProgressView(value: falService.isProcessing ? falService.processingProgress : progress)
                                 .progressViewStyle(LinearProgressViewStyle())
                                 .frame(height: 8)
-                                .animation(.easeInOut(duration: 0.3), value: progress)
+                                .animation(.easeInOut(duration: 0.3), value: falService.isProcessing ? falService.processingProgress : progress)
                             
                             HStack {
-                                Text("\(Int(progress * 100))%")
+                                Text("\(Int((falService.isProcessing ? falService.processingProgress : progress) * 100))%")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 
                                 Spacer()
                                 
-                                Text("~\(Int(suggestion.estimatedProcessingTime * (1 - progress)))s remaining")
+                                let currentProgress = falService.isProcessing ? falService.processingProgress : progress
+                                let remainingTime = suggestion.estimatedProcessingTime * (1 - currentProgress)
+                                Text("~\(Int(max(0, remainingTime)))s remaining")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -240,44 +245,28 @@ struct ProcessingView: View {
                 throw APIError.invalidImage
             }
             
+            // Find the FAL model for this suggestion
+            let falModels = FALService.shared.getAvailableModels()
+            guard let falModel = falModels.first(where: { $0.id == suggestion.falModelId }) else {
+                throw APIError.apiError("Model not found: \(suggestion.falModelId)")
+            }
+            
             await MainActor.run {
-                processingPhase = .analyzing
-                withAnimation(.easeInOut(duration: 1.0)) {
-                    progress = 0.2
-                }
+                processingPhase = .transforming
             }
             
             // Get parameters for the transformation
             let parameters = suggestion.parametersDict
             
-            await MainActor.run {
-                processingPhase = .transforming
-                withAnimation(.easeInOut(duration: 1.5)) {
-                    progress = 0.5
-                }
-            }
-            
-            // Perform transformation based on type
-            let result: TransformationResult
-            if suggestion.type == .videoAnimation {
-                result = try await FALService.shared.generateVideo(
-                    from: image,
-                    modelId: suggestion.falModelId,
-                    parameters: parameters
-                )
-            } else {
-                result = try await FALService.shared.transformImage(
-                    image,
-                    modelId: suggestion.falModelId,
-                    parameters: parameters
-                )
-            }
+            // Use the new streamlined FAL service
+            let result = try await FALService.shared.transform(
+                image,
+                using: falModel,
+                parameters: parameters
+            )
             
             await MainActor.run {
                 processingPhase = .finalizing
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    progress = 0.9
-                }
             }
             
             // Save the result
@@ -357,7 +346,7 @@ struct ProcessingView: View {
         falModelId: "test"
     )
     
-    ProcessingView(photo: mockPhoto, suggestion: mockSuggestion) {
+    return ProcessingView(photo: mockPhoto, suggestion: mockSuggestion) {
         print("Processing complete")
     }
     .modelContainer(for: Photo.self, inMemory: true)
