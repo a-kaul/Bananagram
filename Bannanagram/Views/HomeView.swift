@@ -6,6 +6,8 @@ struct HomeView: View {
     @Query(sort: \Photo.dateCreated, order: .reverse) private var photos: [Photo]
     @Query(sort: \ProcessedMedia.dateCreated, order: .reverse) private var processedMedia: [ProcessedMedia]
     @State private var selectedItem: MediaItem?
+    @State private var pendingDeleteItem: MediaItem?
+    @State private var showDeleteConfirm: Bool = false
     
     private let columns = [
         GridItem(.flexible()),
@@ -20,6 +22,10 @@ struct HomeView: View {
                     ForEach(allMediaItems, id: \.id) { item in
                         MediaGridItem(item: item)
                             .onTapGesture { selectedItem = item }
+                            .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                                pendingDeleteItem = item
+                                showDeleteConfirm = true
+                            })
                     }
                 }
                 .padding(.horizontal, 1)
@@ -40,6 +46,18 @@ struct HomeView: View {
             MediaDetailView(item: item) {
                 selectedItem = nil
             }
+        }
+        .confirmationDialog(
+            pendingDeleteItem?.isVideo == true ? "Delete this video?" : "Delete this photo?",
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let item = pendingDeleteItem {
+                    delete(item)
+                }
+            }
+            Button("Cancel", role: .cancel) { pendingDeleteItem = nil }
         }
     }
     
@@ -126,6 +144,23 @@ struct MediaGridItem: View {
             }
         }
         .cornerRadius(2)
+    }
+}
+
+// MARK: - Deletion
+extension HomeView {
+    private func delete(_ item: MediaItem) {
+        if let media = item.processedMedia {
+            modelContext.delete(media)
+        } else if let photo = item.photo {
+            modelContext.delete(photo)
+        }
+        do {
+            try modelContext.save()
+        } catch {
+            print("HomeView: failed to delete item: \(error)")
+        }
+        pendingDeleteItem = nil
     }
 }
 

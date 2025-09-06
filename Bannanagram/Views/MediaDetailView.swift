@@ -1,5 +1,6 @@
 import SwiftUI
 import AVKit
+import SwiftData
 
 struct MediaDetailView: View {
     let item: MediaItem
@@ -9,6 +10,7 @@ struct MediaDetailView: View {
     @State private var looper: AVPlayerLooper?
     @State private var tempVideoURL: URL?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -17,16 +19,26 @@ struct MediaDetailView: View {
             content
                 .ignoresSafeArea()
 
-            // Close Button
-            Button(action: close) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(.ultraThinMaterial)
-                    .symbolRenderingMode(.palette)
-                    .foregroundColor(.white)
-                    .shadow(radius: 4)
-                    .padding(16)
+            // Top-right controls
+            HStack(spacing: 12) {
+                Button(action: deleteItem) {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(.ultraThinMaterial)
+                        .symbolRenderingMode(.palette)
+                        .foregroundColor(.red)
+                        .shadow(radius: 4)
+                }
+                Button(action: close) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundStyle(.ultraThinMaterial)
+                        .symbolRenderingMode(.palette)
+                        .foregroundColor(.white)
+                        .shadow(radius: 4)
+                }
             }
+            .padding(16)
 
             // Bottom details overlay
             VStack {
@@ -37,6 +49,14 @@ struct MediaDetailView: View {
         }
         .onAppear { preparePlaybackIfNeeded() }
         .onDisappear { cleanupTempFile() }
+        .confirmationDialog(
+            item.isVideo ? "Delete this video?" : "Delete this photo?",
+            isPresented: $showingDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) { performDelete() }
+            Button("Cancel", role: .cancel) { }
+        }
     }
 
     @ViewBuilder
@@ -114,6 +134,19 @@ struct MediaDetailView: View {
     private func close() {
         onClose?()
         dismiss()
+    }
+
+    @State private var showingDeleteConfirm = false
+    private func deleteItem() { showingDeleteConfirm = true }
+
+    private func performDelete() {
+        if let media = item.processedMedia {
+            modelContext.delete(media)
+        } else if let photo = item.photo {
+            modelContext.delete(photo)
+        }
+        do { try modelContext.save() } catch { print("MediaDetailView: delete failed: \(error)") }
+        close()
     }
 
     private func preparePlaybackIfNeeded() {
