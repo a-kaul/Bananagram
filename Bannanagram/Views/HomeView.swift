@@ -95,19 +95,21 @@ struct MediaGridItem: View {
     
     var body: some View {
         ZStack {
-            if let imageData = item.thumbnailData ?? item.imageData,
-               let uiImage = UIImage(data: imageData) {
+            let cellSize = UIScreen.main.bounds.width / 3 - 2
+            if item.isVideo, let data = item.processedMedia?.mediaData {
+                LoopingVideoView(data: data, cornerRadius: 2)
+                    .frame(width: cellSize, height: cellSize)
+            } else if let imageData = item.thumbnailData ?? item.imageData,
+                      let uiImage = UIImage(data: imageData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: UIScreen.main.bounds.width / 3 - 2, 
-                           height: UIScreen.main.bounds.width / 3 - 2)
+                    .frame(width: cellSize, height: cellSize)
                     .clipped()
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
-                    .frame(width: UIScreen.main.bounds.width / 3 - 2, 
-                           height: UIScreen.main.bounds.width / 3 - 2)
+                    .frame(width: cellSize, height: cellSize)
             }
             
             if item.isVideo {

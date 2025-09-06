@@ -259,6 +259,186 @@ class FALService {
         throw APIError.invalidResponse
     }
 
+    // MARK: - Image → Video Stylization
+
+    func stylizeImageToVideo(
+        _ image: UIImage,
+        style: String
+    ) async throws -> TransformationResult {
+        print("🎞️ FALService: Starting image→video stylize")
+        print("📝 FALService: Style: \(style)")
+
+        await MainActor.run {
+            isProcessing = true
+            processingProgress = 0.0
+            processingStatus = "Preparing video stylization..."
+        }
+
+        defer {
+            Task { @MainActor in
+                isProcessing = false
+                processingProgress = 0.0
+                processingStatus = ""
+            }
+        }
+
+        guard let imageData = image.jpegData(compressionQuality: 0.9) else {
+            print("❌ FALService: Failed to convert image to JPEG data")
+            throw APIError.invalidImage
+        }
+
+        print("✅ FALService: Image converted to JPEG (\(imageData.count) bytes)")
+
+        guard let fal = fal else {
+            print("⚠️ FALService: No FAL client available for video stylize")
+            throw APIError.missingAPIKey("FAL client not initialized")
+        }
+
+        await MainActor.run {
+            processingStatus = "Uploading image..."
+            processingProgress = 0.1
+        }
+
+        // Upload or base64
+        let imageUrl = try await uploadImageToFAL(fal: fal, imageData: imageData)
+
+        await MainActor.run {
+            processingStatus = "Stylizing to video..."
+            processingProgress = 0.3
+        }
+
+        print("🚀 FALService: Calling bytedance video stylize API...")
+
+        let result = try await fal.subscribe(
+            to: "fal-ai/bytedance/video-stylize",
+            input: [
+                "style": .string(style),
+                "image_url": .string(imageUrl),
+                // Helps some models return the file directly instead of CDN staged
+                "sync_mode": .bool(true)
+            ],
+            includeLogs: true
+        ) { update in
+            if case let .inProgress(logs) = update {
+                print("🔄 FALService: Video stylize logs: \(logs)")
+                Task { @MainActor in
+                    self.processingStatus = "AI processing (video)..."
+                    self.processingProgress = min(0.85, max(0.35, self.processingProgress + 0.1))
+                }
+            }
+        }
+
+        await MainActor.run {
+            processingStatus = "Downloading video..."
+            processingProgress = 0.9
+        }
+
+        print("📄 FALService: Raw video result type: \(type(of: result))")
+        let extractedDuration = extractVideoDuration(from: result)
+        let videoData = try await parseVideoStylizeResult(result)
+
+        await MainActor.run {
+            processingStatus = "Complete!"
+            processingProgress = 1.0
+        }
+
+        print("🎉 FALService: Video stylization completed successfully!")
+
+        return TransformationResult(
+            mediaData: videoData,
+            isVideo: true,
+            duration: extractedDuration,
+            metadata: [
+                "mock": false,
+                "model": "fal-ai/bytedance/video-stylize",
+                "style": style,
+                "original_size": imageData.count,
+                "result_size": videoData.count
+            ]
+        )
+    }
+
+    private func parseVideoStylizeResult(_ result: Any) async throws -> Data {
+        print("🍿 FALService: Parsing video stylize result")
+
+        if let payload = result as? Payload {
+            if case .dict(let dict) = payload {
+                let keys = dict.keys.joined(separator: ", ")
+                print("📄 FALService: Video payload keys: \(keys)")
+
+                // Check common keys
+                if case let .string(url) = dict["video_url"] { return try await download(url) }
+                if case let .string(url) = dict["url"] { return try await download(url) }
+                // If "video" is a string URL
+                if case let .string(url) = dict["video"] { return try await download(url) }
+                // If "video" is an object with a nested url
+                if case let .dict(videoObj) = dict["video"], case let .string(url) = videoObj["url"] { return try await download(url) }
+
+                // Some models nest under outputs or similar
+                if case let .dict(outputs) = dict["outputs"] {
+                    if case let .string(url) = outputs["video"] { return try await download(url) }
+                    if case let .dict(videoObj) = outputs["video"], case let .string(url) = videoObj["url"] { return try await download(url) }
+                }
+            }
+
+            // Arrays of items with url fields
+            if case .array(let arr) = payload {
+                for item in arr {
+                    if case let .dict(obj) = item {
+                        if case let .string(url) = obj["video_url"] { return try await download(url) }
+                        if case let .string(url) = obj["video"] { return try await download(url) }
+                        if case let .string(url) = obj["url"] { return try await download(url) }
+                    }
+                }
+            }
+        }
+
+        if let dict = result as? [String: Any] {
+            if let url = dict["video_url"] as? String ?? dict["url"] as? String {
+                return try await download(url)
+            }
+            if let videoStr = dict["video"] as? String { return try await download(videoStr) }
+            if let videoObj = dict["video"] as? [String: Any], let url = videoObj["url"] as? String {
+                return try await download(url)
+            }
+            if let outputs = dict["outputs"] as? [String: Any] {
+                if let url = outputs["video"] as? String { return try await download(url) }
+                if let videoObj = outputs["video"] as? [String: Any], let url = videoObj["url"] as? String { return try await download(url) }
+            }
+        }
+
+        print("❌ FALService: Could not find video url in result (type: \(type(of: result)))")
+        throw APIError.invalidResponse
+    }
+
+    private func download(_ urlString: String) async throws -> Data {
+        print("⬇️ FALService: Downloading from: \(urlString)")
+        let url = URL(string: urlString)!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+            print("❌ FALService: HTTP error \(http.statusCode) for \(urlString)")
+            throw APIError.apiError("Network error: HTTP \(http.statusCode)")
+        }
+        print("✅ FALService: Downloaded (\(data.count) bytes)")
+        return data
+    }
+
+    private func extractVideoDuration(from result: Any) -> TimeInterval? {
+        if let payload = result as? Payload {
+            if case let .dict(dict) = payload {
+                if case let .double(d)? = dict["duration"] { return d }
+                if case let .int(i)? = dict["duration"] { return TimeInterval(i) }
+                if case let .string(s)? = dict["duration"], let d = Double(s) { return d }
+            }
+        }
+        if let dict = result as? [String: Any] {
+            if let d = dict["duration"] as? Double { return d }
+            if let i = dict["duration"] as? Int { return TimeInterval(i) }
+            if let s = dict["duration"] as? String, let d = Double(s) { return d }
+        }
+        return nil
+    }
+
     // Extract first image URL from FalClient.Payload response
     private func extractImageURL(from payload: Payload) -> String? {
         switch payload {

@@ -124,6 +124,11 @@ class GeminiService {
         2. Creative Transform (artistic styles like anime, vintage, pop art)
         3. Video Animation (subtle motion effects, cinemagraphs)
         
+        Additional instruction for Video Animation:
+        - You may include at most ONE (1) suggestion that converts the image into a short animated video using fal.ai’s image-to-video stylization model.
+        - When you include this, use: "fal_model": "fal-ai/bytedance/video-stylize"
+        - Provide a single, simple style name in parameters under the key "style" (e.g., "Manga style", "Watercolor", "Cyberpunk neon"). Keep the style concise. Do NOT add complex parameter sets.
+        
         Each suggestion should be highly relevant to the specific image content and feel personalized.
         
         Respond in JSON format:
@@ -176,7 +181,20 @@ class GeminiService {
             throw APIError.invalidResponse
         }
         
-        return try parseSuggestionsResponse(content)
+        let suggestions = try parseSuggestionsResponse(content)
+
+        // Enforce at most one bytedance video-stylize suggestion client-side
+        var seenVideoStylize = false
+        let filtered = suggestions.filter { s in
+            if s.falModel == "fal-ai/bytedance/video-stylize" {
+                if seenVideoStylize { return false }
+                seenVideoStylize = true
+                return true
+            }
+            return true
+        }
+
+        return filtered
     }
     
     // MARK: - Response Parsing

@@ -251,27 +251,32 @@ struct ProcessingView: View {
             
             print("✅ ProcessingView: Image available for processing")
             
-            // We're now using nano-banana for all transformations
-            print("✅ ProcessingView: Using nano-banana model for all transformations")
             print("🎯 ProcessingView: Suggestion model: \(suggestion.falModelId)")
             
             await MainActor.run {
                 processingPhase = .transforming
             }
             
-            // Get the prompt from parameters or use suggestion title as prompt
             let parameters = suggestion.parametersDict
-            let prompt = parameters["prompt"] as? String ?? 
-                        "enhance this image as \(suggestion.title.lowercased()): \(suggestion.suggestionDescription)"
-            
-            print("🔧 ProcessingView: Using prompt: \(prompt)")
-            
-            // Use the new simplified FAL service
-            print("🚀 ProcessingView: Calling FALService.editImage...")
-            let result = try await FALService.shared.editImage(
-                image,
-                prompt: prompt
-            )
+            let result: TransformationResult
+
+            if suggestion.falModelId == "fal-ai/bytedance/video-stylize" {
+                // Video stylize path: require a simple style string
+                guard let style = parameters["style"] as? String, !style.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    print("❌ ProcessingView: Missing required 'style' parameter for video stylize")
+                    throw APIError.invalidResponse
+                }
+                print("🔧 ProcessingView: Using style: \(style)")
+                print("🚀 ProcessingView: Calling FALService.stylizeImageToVideo...")
+                result = try await FALService.shared.stylizeImageToVideo(image, style: style)
+            } else {
+                // Image edit (nano-banana) path
+                let prompt = parameters["prompt"] as? String ??
+                "enhance this image as \(suggestion.title.lowercased()): \(suggestion.suggestionDescription)"
+                print("🔧 ProcessingView: Using prompt: \(prompt)")
+                print("🚀 ProcessingView: Calling FALService.editImage...")
+                result = try await FALService.shared.editImage(image, prompt: prompt)
+            }
             
             print("✅ ProcessingView: Transform completed!")
             print("📊 ProcessingView: Result metadata: \(result.metadata)")

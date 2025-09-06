@@ -303,11 +303,11 @@ struct AIAnalysisView: View {
             TransformationSuggestion(
                 photoId: photo.id,
                 type: .videoAnimation,
-                title: "Decart Lucy Video",
-                description: "Create a 5-second video in under 5 seconds with smooth motion",
-                reasoning: "The scene has elements that would create beautiful motion and animation",
+                title: "Video Stylize (Bytedance)",
+                description: "Turn your image into a short stylized animation using a simple style.",
+                reasoning: "The image composition lends itself to an animated treatment.",
                 confidence: 0.8,
-                falModelId: "fal-ai/decart/lucy-5b/image-to-video",
+                falModelId: "fal-ai/bytedance/video-stylize",
                 orderIndex: 2
             ),
             TransformationSuggestion(
@@ -320,22 +320,17 @@ struct AIAnalysisView: View {
                 falModelId: "fal-ai/ideogram/character/edit",
                 orderIndex: 3
             ),
-            TransformationSuggestion(
-                photoId: photo.id,
-                type: .videoAnimation,
-                title: "Kling Video Master",
-                description: "Top-tier image-to-video generation with exceptional motion fluidity",
-                reasoning: "The composition would benefit from cinematic motion and video transformation",
-                confidence: 0.88,
-                falModelId: "fal-ai/kling-video/v2.1/master/image-to-video",
-                orderIndex: 4
-            )
+            // Keep list to a single image→video stylize suggestion for bytedance
         ]
         
         suggestions = mockSuggestions
         
         // Save to database
         for suggestion in suggestions {
+            // For the bytedance stylize item, set a simple default style in mock mode
+            if suggestion.falModelId == "fal-ai/bytedance/video-stylize" {
+                suggestion.updateParameters(["style": "Manga style"]) // mock/demo only
+            }
             modelContext.insert(suggestion)
             photo.suggestions.append(suggestion)
         }

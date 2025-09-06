@@ -5,7 +5,8 @@ struct MediaDetailView: View {
     let item: MediaItem
     var onClose: (() -> Void)?
 
-    @State private var player: AVPlayer?
+    @State private var player: AVQueuePlayer?
+    @State private var looper: AVPlayerLooper?
     @State private var tempVideoURL: URL?
     @Environment(\.dismiss) private var dismiss
 
@@ -122,7 +123,10 @@ struct MediaDetailView: View {
         do {
             try data.write(to: fileURL, options: .atomic)
             tempVideoURL = fileURL
-            player = AVPlayer(url: fileURL)
+            let queue = AVQueuePlayer()
+            let item = AVPlayerItem(url: fileURL)
+            looper = AVPlayerLooper(player: queue, templateItem: item)
+            player = queue
         } catch {
             print("Failed to write temp video: \(error)")
         }
@@ -130,6 +134,7 @@ struct MediaDetailView: View {
 
     private func cleanupTempFile() {
         player?.pause()
+        looper = nil
         if let url = tempVideoURL {
             try? FileManager.default.removeItem(at: url)
             tempVideoURL = nil
@@ -147,4 +152,3 @@ struct MediaDetailView: View {
         return String(format: "%.1f %@", size, units[idx])
     }
 }
-

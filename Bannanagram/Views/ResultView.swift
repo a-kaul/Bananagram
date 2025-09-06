@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AVKit
 
 struct ResultView: View {
     let originalPhoto: Photo
@@ -10,6 +11,9 @@ struct ResultView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingShareSheet = false
     @State private var shareImage: UIImage?
+    @State private var inlinePlayer: AVQueuePlayer?
+    @State private var inlineLooper: AVPlayerLooper?
+    @State private var inlineTempURL: URL?
     
     var body: some View {
         NavigationView {
@@ -31,20 +35,44 @@ struct ResultView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         // Result Image/Video
-                        if let mediaData = processedMedia.mediaData,
-                           let resultImage = UIImage(data: mediaData) {
-                            
-                            VStack(spacing: 12) {
-                                Text("After")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                
-                                Image(uiImage: resultImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(maxHeight: 300)
-                                    .cornerRadius(12)
-                                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        Group {
+                            if processedMedia.isVideo {
+                                VStack(spacing: 12) {
+                                    Text("After (Video)")
+                                        .font(.headline)
+                                        .foregroundColor(.blue)
+
+                                    if let player = inlinePlayer {
+                                        VideoPlayer(player: player)
+                                            .onAppear { player.play() }
+                                            .onDisappear { player.pause() }
+                                            .frame(maxHeight: 300)
+                                            .cornerRadius(12)
+                                            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                                            )
+                                    } else {
+                                        ProgressView()
+                                            .frame(height: 200)
+                                            .onAppear { prepareInlineVideoIfNeeded() }
+                                    }
+                                }
+                            } else if let mediaData = processedMedia.mediaData,
+                                      let resultImage = UIImage(data: mediaData) {
+                                VStack(spacing: 12) {
+                                    Text("After")
+                                        .font(.headline)
+                                        .foregroundColor(.blue)
+
+                                    Image(uiImage: resultImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxHeight: 300)
+                                        .cornerRadius(12)
+                                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                                }
                             }
                         }
                         
@@ -150,6 +178,8 @@ struct ResultView: View {
                 ShareSheet(activityItems: [image])
             }
         }
+        .onAppear { prepareInlineVideoIfNeeded() }
+        .onDisappear { cleanupInlineVideo() }
     }
     
     private func prepareForSharing() {
@@ -179,6 +209,37 @@ struct ResultView: View {
         // Show success feedback (could add haptic feedback here)
         // For now, just print
         print("Image saved to Photos")
+    }
+}
+
+// MARK: - Inline Video Helpers
+extension ResultView {
+    private func prepareInlineVideoIfNeeded() {
+        guard processedMedia.isVideo, inlinePlayer == nil, let data = processedMedia.mediaData else { return }
+        let tmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent((processedMedia.fileName.isEmpty == false ? processedMedia.fileName : UUID().uuidString) + ".mp4")
+        do {
+            try data.write(to: tmp, options: .atomic)
+            inlineTempURL = tmp
+            let item = AVPlayerItem(url: tmp)
+            let queue = AVQueuePlayer()
+            queue.isMuted = true
+            let looper = AVPlayerLooper(player: queue, templateItem: item)
+            inlinePlayer = queue
+            inlineLooper = looper
+            queue.play()
+        } catch {
+            print("ResultView: failed to write temp video: \(error)")
+        }
+    }
+
+    private func cleanupInlineVideo() {
+        inlinePlayer?.pause()
+        inlinePlayer = nil
+        inlineLooper = nil
+        if let url = inlineTempURL {
+            try? FileManager.default.removeItem(at: url)
+            inlineTempURL = nil
+        }
     }
 }
 
