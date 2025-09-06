@@ -6,11 +6,16 @@
     {
       "layers" : [
         {
+          "blend-mode" : "normal",
           "image-name" : "bananaFront.png",
           "name" : "bananaFront",
-          "opacity" : 0.69
+          "opacity" : 0.9
         },
         {
+          "blend-mode" : "hard-light",
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
           "image-name" : "instaBack.jpg",
           "name" : "instaBack",
           "position" : {

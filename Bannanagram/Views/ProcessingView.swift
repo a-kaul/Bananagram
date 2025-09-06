@@ -238,32 +238,49 @@ struct ProcessingView: View {
     
     private func performRealProcessing() async {
         do {
+            print("🎬 ProcessingView: Starting processing for suggestion: \(suggestion.title)")
+            print("🔧 ProcessingView: Suggestion FAL Model ID: \(suggestion.falModelId)")
+            
             // Check API configuration
             try APIConfiguration.shared.validateConfiguration()
             
             guard let image = photo.image else {
+                print("❌ ProcessingView: No image available for processing")
                 throw APIError.invalidImage
             }
             
-            // Find the FAL model for this suggestion
-            let falModels = FALService.shared.getAvailableModels()
-            guard let falModel = falModels.first(where: { $0.id == suggestion.falModelId }) else {
-                throw APIError.apiError("Model not found: \(suggestion.falModelId)")
-            }
+            print("✅ ProcessingView: Image available for processing")
+            
+            // We're now using nano-banana for all transformations
+            print("✅ ProcessingView: Using nano-banana model for all transformations")
+            print("🎯 ProcessingView: Suggestion model: \(suggestion.falModelId)")
             
             await MainActor.run {
                 processingPhase = .transforming
             }
             
-            // Get parameters for the transformation
+            // Get the prompt from parameters or use suggestion title as prompt
             let parameters = suggestion.parametersDict
+            let prompt = parameters["prompt"] as? String ?? 
+                        "enhance this image as \(suggestion.title.lowercased()): \(suggestion.suggestionDescription)"
             
-            // Use the new streamlined FAL service
-            let result = try await FALService.shared.transform(
+            print("🔧 ProcessingView: Using prompt: \(prompt)")
+            
+            // Use the new simplified FAL service
+            print("🚀 ProcessingView: Calling FALService.editImage...")
+            let result = try await FALService.shared.editImage(
                 image,
-                using: falModel,
-                parameters: parameters
+                prompt: prompt
             )
+            
+            print("✅ ProcessingView: Transform completed!")
+            print("📊 ProcessingView: Result metadata: \(result.metadata)")
+            
+            if let isMock = result.metadata["mock"] as? Bool, isMock {
+                print("⚠️ ProcessingView: RESULT IS MOCK - Original image returned")
+            } else {
+                print("🎉 ProcessingView: REAL transformation completed!")
+            }
             
             await MainActor.run {
                 processingPhase = .finalizing

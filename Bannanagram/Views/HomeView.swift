@@ -5,6 +5,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Photo.dateCreated, order: .reverse) private var photos: [Photo]
     @Query(sort: \ProcessedMedia.dateCreated, order: .reverse) private var processedMedia: [ProcessedMedia]
+    @State private var selectedItem: MediaItem?
     
     private let columns = [
         GridItem(.flexible()),
@@ -18,6 +19,7 @@ struct HomeView: View {
                 LazyVGrid(columns: columns, spacing: 2) {
                     ForEach(allMediaItems, id: \.id) { item in
                         MediaGridItem(item: item)
+                            .onTapGesture { selectedItem = item }
                     }
                 }
                 .padding(.horizontal, 1)
@@ -32,6 +34,11 @@ struct HomeView: View {
                         Image(systemName: "line.3.horizontal")
                     }
                 }
+            }
+        }
+        .fullScreenCover(item: $selectedItem) { item in
+            MediaDetailView(item: item) {
+                selectedItem = nil
             }
         }
     }
