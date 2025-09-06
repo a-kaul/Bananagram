@@ -159,6 +159,7 @@ class GeminiService {
         let requestBody: [String: Any] = [
             "contents": [
                 [
+                    "role": "user",
                     "parts": [
                         ["text": prompt]
                     ]
@@ -166,11 +167,15 @@ class GeminiService {
             ],
             "generationConfig": [
                 "temperature": 0.8,
-                "maxOutputTokens": 2048
+                "maxOutputTokens": 2048,
+                "thinkingConfig": [
+                    "thinkingBudget": 0
+                ]
             ]
         ]
         
-        let url = URL(string: "\(baseURL)/models/gemini-1.5-flash:generateContent?key=\(apiKey)")!
+        // Target Gemini 2.5 Flash for suggestion generation
+        let url = URL(string: "\(baseURL)/models/gemini-2.5-flash:generateContent?key=\(apiKey)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
