@@ -18,7 +18,39 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
+                // Profile Header
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        Circle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 56, height: 56)
+                            .overlay {
+                                Image(systemName: "person.fill")
+                                    .font(.title3)
+                                    .foregroundColor(.gray)
+                            }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Bananius Peel")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            Text("Making everyday photos a-peel-ing")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+
+                    // Stats: Photos, Enhanced, Favorites
+                    HStack(spacing: 32) {
+                        StatView(number: photos.count, label: "Photos")
+                        StatView(number: processedMedia.filter { $0.isComplete }.count, label: "Enhanced")
+                        StatView(number: processedMedia.filter { $0.isComplete && $0.isFavorited }.count, label: "Favorites")
+                    }
+                    .padding(.horizontal)
+                }
+
                 Picker("Filter", selection: $showFilter) {
                     Text("Favorites").tag(ContentFilter.favorites)
                     Text("All").tag(ContentFilter.all)
