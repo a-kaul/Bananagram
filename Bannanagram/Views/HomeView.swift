@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
@@ -22,14 +23,24 @@ struct HomeView: View {
                 // Profile Header
                 VStack(spacing: 12) {
                     HStack(spacing: 12) {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 56, height: 56)
-                            .overlay {
-                                Image(systemName: "person.fill")
-                                    .font(.title3)
-                                    .foregroundColor(.gray)
-                            }
+                        if let avatar = UIImage(named: "ProfileAvatar") {
+                            Image(uiImage: avatar)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 56, height: 56)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 1))
+                                .shadow(radius: 2)
+                        } else {
+                            Circle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 56, height: 56)
+                                .overlay {
+                                    Image(systemName: "person.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.gray)
+                                }
+                        }
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Bananius Peel")
                                 .font(.title3)

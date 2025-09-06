@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
@@ -12,14 +13,24 @@ struct ProfileView: View {
                 VStack(spacing: 20) {
                     // Profile Header
                     VStack(spacing: 12) {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 80, height: 80)
-                            .overlay {
-                                Image(systemName: "person.fill")
-                                    .font(.title)
-                                    .foregroundColor(.gray)
-                            }
+                        if let avatar = UIImage(named: "ProfileAvatar") {
+                            Image(uiImage: avatar)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 1))
+                                .shadow(radius: 3)
+                        } else {
+                            Circle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 80, height: 80)
+                                .overlay {
+                                    Image(systemName: "person.fill")
+                                        .font(.title)
+                                        .foregroundColor(.gray)
+                                }
+                        }
                         
                         Text("BananaGram User")
                             .font(.title2)
