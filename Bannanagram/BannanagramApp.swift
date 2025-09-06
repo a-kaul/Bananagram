@@ -25,6 +25,16 @@ struct BannanagramApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    init() {
+        print("🚀 BananaGram App Starting...")
+        print("🔧 Initializing API Configuration...")
+        
+        // Force initialization of APIConfiguration to see debug logs
+        let _ = APIConfiguration.shared
+        
+        print("🔧 Configuration check: \(APIConfiguration.shared.isConfigured ? "✅ Configured" : "❌ Missing keys")")
+    }
 
     var body: some Scene {
         WindowGroup {

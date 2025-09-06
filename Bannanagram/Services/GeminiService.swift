@@ -13,9 +13,17 @@ class GeminiService {
     // MARK: - Image Analysis
     
     func analyzeImage(_ image: UIImage) async throws -> ImageAnalysisResult {
-        guard let apiKey = try? APIConfiguration.shared.geminiAPIKey else {
+        print("🔍 GeminiService: Starting image analysis...")
+        
+        do {
+            let apiKey = try APIConfiguration.shared.geminiAPIKey
+            print("✅ GeminiService: API key retrieved successfully")
+        } catch {
+            print("❌ GeminiService: Failed to get API key - \(error)")
             throw APIError.missingAPIKey("Gemini API key not configured")
         }
+        
+        let apiKey = try APIConfiguration.shared.geminiAPIKey
         
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw APIError.invalidImage

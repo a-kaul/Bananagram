@@ -16,11 +16,15 @@ class FALService {
     }
     
     private func setupClient() {
+        print("🔍 FALService: Setting up FAL client...")
+        
         do {
             let apiKey = try APIConfiguration.shared.falAIAPIKey
+            print("✅ FALService: API key retrieved successfully")
             falClient = FalClient.withCredentials(.keyPair(apiKey))
+            print("✅ FALService: Client setup complete")
         } catch {
-            print("FAL client setup failed: \(error)")
+            print("❌ FALService: Client setup failed - \(error)")
             falClient = nil
         }
     }

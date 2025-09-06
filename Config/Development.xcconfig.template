@@ -1,0 +1,11 @@
+// Development Configuration Template for BananaGram
+// Copy this file to Development.xcconfig and add your real API keys
+// The Development.xcconfig file will be ignored by git for security
+
+// FAL AI API Key
+// Get your key from: https://fal.ai/dashboard
+FAL_AI_API_KEY = your_fal_ai_api_key_here
+
+// Google Gemini API Key
+// Get your key from: https://makersuite.google.com/app/apikey
+GEMINI_API_KEY = your_gemini_api_key_here
