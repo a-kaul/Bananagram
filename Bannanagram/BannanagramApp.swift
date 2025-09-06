@@ -22,7 +22,17 @@ struct BannanagramApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            print("❌ Could not create ModelContainer: \(error)")
+            // HACK: Destructive reset to recover from SwiftData model mismatches
+            // This clears the app's Application Support directory where SwiftData stores live.
+            // It will delete all user data, but allows the app to relaunch cleanly after schema changes.
+            BannanagramApp.resetSwiftDataStores()
+            do {
+                print("🔁 Retrying ModelContainer creation after clearing stores…")
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer after reset: \(error)")
+            }
         }
     }()
     
@@ -41,5 +51,25 @@ struct BannanagramApp: App {
             MainTabView()
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    private static func resetSwiftDataStores() {
+        let fm = FileManager.default
+        do {
+            let appSupport = try fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            print("🧹 Clearing Application Support at: \(appSupport.path)")
+            if let items = try? fm.contentsOfDirectory(at: appSupport, includingPropertiesForKeys: nil) {
+                for url in items {
+                    do {
+                        try fm.removeItem(at: url)
+                        print("   • Removed: \(url.lastPathComponent)")
+                    } catch {
+                        print("   ⚠️ Failed to remove: \(url.lastPathComponent) — \(error)")
+                    }
+                }
+            }
+        } catch {
+            print("⚠️ Failed to access Application Support: \(error)")
+        }
     }
 }

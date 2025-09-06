@@ -8,6 +8,7 @@ struct HomeView: View {
     @State private var selectedItem: MediaItem?
     @State private var pendingDeleteItem: MediaItem?
     @State private var showDeleteConfirm: Bool = false
+    @State private var showFilter: ContentFilter = .favorites
     
     private let columns = [
         GridItem(.flexible()),
@@ -17,7 +18,15 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
+            VStack(spacing: 8) {
+                Picker("Filter", selection: $showFilter) {
+                    Text("Favorites").tag(ContentFilter.favorites)
+                    Text("All").tag(ContentFilter.all)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+
+                ScrollView {
                 LazyVGrid(columns: columns, spacing: 2) {
                     ForEach(allMediaItems, id: \.id) { item in
                         MediaGridItem(item: item)
@@ -29,6 +38,7 @@ struct HomeView: View {
                     }
                 }
                 .padding(.horizontal, 1)
+                }
             }
             .navigationTitle("BananaGram")
             .navigationBarTitleDisplayMode(.inline)
@@ -63,17 +73,19 @@ struct HomeView: View {
     
     private var allMediaItems: [MediaItem] {
         var items: [MediaItem] = []
-        
-        // Add completed processed media
-        for media in processedMedia where media.isComplete {
-            items.append(MediaItem(processedMedia: media))
+        let completed = processedMedia.filter { $0.isComplete }
+        if showFilter == .favorites {
+            for media in completed where media.isFavorited {
+                items.append(MediaItem(processedMedia: media))
+            }
+        } else {
+            for media in completed {
+                items.append(MediaItem(processedMedia: media))
+            }
+            for photo in photos where photo.processedVersions.isEmpty {
+                items.append(MediaItem(photo: photo))
+            }
         }
-        
-        // Add original photos that haven't been processed yet
-        for photo in photos where photo.processedVersions.isEmpty {
-            items.append(MediaItem(photo: photo))
-        }
-        
         return items.sorted { $0.dateCreated > $1.dateCreated }
     }
 }
@@ -142,10 +154,24 @@ struct MediaGridItem: View {
                     }
                 }
             }
+            if (item.processedMedia?.isFavorited ?? false) {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "heart.fill")
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(4)
+                    }
+                    Spacer()
+                }
+            }
         }
         .cornerRadius(2)
     }
 }
+
+enum ContentFilter: Hashable { case favorites, all }
 
 // MARK: - Deletion
 extension HomeView {

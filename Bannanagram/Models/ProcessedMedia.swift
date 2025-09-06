@@ -36,6 +36,7 @@ final class ProcessedMedia {
     var shareURL: String?
     var isShared: Bool
     var shareCount: Int
+    var isFavorited: Bool
     
     @Relationship(inverse: \Photo.processedVersions) var originalPhoto: Photo?
     @Relationship(inverse: \TransformationSuggestion.processedResult) var suggestion: TransformationSuggestion?
@@ -57,6 +58,7 @@ final class ProcessedMedia {
         self.dateCreated = Date()
         self.isShared = false
         self.shareCount = 0
+        self.isFavorited = false
     }
     
     var isVideo: Bool {

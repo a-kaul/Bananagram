@@ -10,7 +10,8 @@ struct CameraView: View {
     @State private var showingCamera = false
     @State private var capturedImage: UIImage?
     @State private var isProcessingUpload = false
-    @State private var showingAIAnalysis = false
+    @State private var showingAIAnalysis = false // legacy (unused)
+    @State private var showingMagicStudio = false
     @State private var currentPhoto: Photo?
     
     var body: some View {
@@ -18,7 +19,7 @@ struct CameraView: View {
             VStack(spacing: 0) {
                 // Header
                 VStack(spacing: 8) {
-                    Text("Create Magic")
+                    Text("Bananagram")
                         .font(.title)
                         .fontWeight(.bold)
                     
@@ -124,10 +125,10 @@ struct CameraView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showingAIAnalysis) {
+        .fullScreenCover(isPresented: $showingMagicStudio) {
             if let photo = currentPhoto {
-                AIAnalysisView(photo: photo) {
-                    showingAIAnalysis = false
+                MagicStudioView(photo: photo) {
+                    showingMagicStudio = false
                     currentPhoto = nil
                 }
             }
@@ -195,7 +196,7 @@ struct CameraView: View {
             do {
                 try modelContext.save()
                 currentPhoto = photo
-                showingAIAnalysis = true
+                showingMagicStudio = true
             } catch {
                 print("Error saving photo: \(error)")
             }

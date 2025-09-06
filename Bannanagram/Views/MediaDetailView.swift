@@ -21,6 +21,16 @@ struct MediaDetailView: View {
 
             // Top-right controls
             HStack(spacing: 12) {
+                if let processed = item.processedMedia {
+                    Button(action: { toggleFavorite(processed) }) {
+                        Image(systemName: processed.isFavorited ? "heart.fill" : "heart")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(.ultraThinMaterial)
+                            .symbolRenderingMode(.palette)
+                            .foregroundColor(processed.isFavorited ? .red : .white)
+                            .shadow(radius: 4)
+                    }
+                }
                 Button(action: deleteItem) {
                     Image(systemName: "trash.fill")
                         .font(.system(size: 22, weight: .semibold))
@@ -147,6 +157,11 @@ struct MediaDetailView: View {
         }
         do { try modelContext.save() } catch { print("MediaDetailView: delete failed: \(error)") }
         close()
+    }
+
+    private func toggleFavorite(_ media: ProcessedMedia) {
+        media.isFavorited.toggle()
+        do { try modelContext.save() } catch { print("MediaDetailView: favorite toggle failed: \(error)") }
     }
 
     private func preparePlaybackIfNeeded() {
