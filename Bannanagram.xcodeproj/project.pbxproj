@@ -13,7 +13,7 @@
 
 /* Begin PBXFileReference section */
 		63E246152E6CB0740070FA00 /* Bannanagram.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bannanagram.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		63E2464D2E6CC7AF0070FA00 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Development.xcconfig; sourceTree = "<group>"; };
+		63E2464D2E6CC7AF0070FA00 /* Development.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Development.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
