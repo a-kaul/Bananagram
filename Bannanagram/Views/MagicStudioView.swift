@@ -247,6 +247,22 @@ private struct SuggestionTile: View {
         .buttonStyle(.plain)
         .frame(height: 160)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            alignment: .topLeading,
+            content: {
+                if let processed, processed.isComplete {
+                    header.padding(8)
+                }
+            }
+        )
+        .overlay(
+            alignment: .bottomTrailing,
+            content: {
+                if let processed, processed.isComplete {
+                    favoriteButton(processed).padding(8)
+                }
+            }
+        )
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.black.opacity(0.05), lineWidth: 0.5))
     }
 
@@ -259,18 +275,12 @@ private struct SuggestionTile: View {
             // Show preview
             if processed.isVideo, let data = processed.mediaData {
                 LoopingVideoView(data: data, cornerRadius: 0)
-                    .overlay(alignment: .topLeading) { header }
-                    .overlay(alignment: .bottomTrailing) { favoriteButton(processed) }
                     .onTapGesture { onOpen(processed) }
             } else if let data = processed.mediaData, let image = UIImage(data: data) {
-                ZStack(alignment: .topLeading) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                    header
-                }
-                .overlay(alignment: .bottomTrailing) { favoriteButton(processed) }
-                .onTapGesture { onOpen(processed) }
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .onTapGesture { onOpen(processed) }
             } else {
                 tileLabel
             }

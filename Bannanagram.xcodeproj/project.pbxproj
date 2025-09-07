@@ -273,6 +273,7 @@
 				DEVELOPMENT_TEAM = 45RTZ22G85;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Bananagram;
 				INFOPLIST_KEY_NSCameraUsageDescription = "For taking Photos";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For voice requests. ";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "For saving photos from app. ";
@@ -311,6 +312,7 @@
 				DEVELOPMENT_TEAM = 45RTZ22G85;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Bananagram;
 				INFOPLIST_KEY_NSCameraUsageDescription = "For taking Photos";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For voice requests. ";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "For saving photos from app. ";
