@@ -1,3 +1,5 @@
+![BananaGram Icon](icon.png)
+
 # 🍌 BananaGram
 
 **Reimagining Instagram's magic with AI-powered photo transformations**
@@ -126,20 +128,6 @@ Bannanagram/
 - **Magical animations**: Smooth transitions and progress indicators
 - **Accessibility**: VoiceOver support and dynamic type
 - **Dark mode**: Automatic system appearance adaptation
-
-## 🚢 Deployment
-
-### TestFlight Distribution
-
-1. Archive your app in Xcode
-2. Upload to App Store Connect
-3. Configure environment variables in App Store Connect:
-   - Go to App Store Connect > Your App > TestFlight
-   - Add environment variables in build configuration
-
-### App Store Release
-
-Ensure all API keys are configured in your production environment before releasing.
 
 ## 🤝 Contributing
 
